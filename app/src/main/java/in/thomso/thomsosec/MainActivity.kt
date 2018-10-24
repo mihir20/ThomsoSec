@@ -1,10 +1,13 @@
 package `in`.thomso.thomsosec
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.Image
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -23,7 +26,9 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Multipart
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.StringBuilder
 
 class MainActivity : AppCompatActivity() {
 
@@ -58,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         scanBTN.setOnClickListener {
             val intent = Intent(this,QRScannerActivity::class.java)
-            startActivityForResult(intent,100)
+            startActivityForResult(intent,707)
         }
 
         imagePickBTN.setOnClickListener {
@@ -73,17 +78,26 @@ class MainActivity : AppCompatActivity() {
         sendBTN.setOnClickListener {
             if (image!=null){
                 val file = File(image?.path)
-                val compressedFile = Compressor(this).compressToFile(file)
-                val reqFile = RequestBody.create(MediaType.parse("image/*"),compressedFile)
-                val body = MultipartBody.Part.createFormData("image",file.name,reqFile)
-                val name = RequestBody.create(MediaType.parse("text/plain"),"xxx")
-                val email = RequestBody.create(MediaType.parse("text/plain"),"xxx")
-                val contact = RequestBody.create(MediaType.parse("text/plain"),"xxx")
-                val organization = RequestBody.create(MediaType.parse("text/plain"),"xxx")
-                val qr = RequestBody.create(MediaType.parse("text/plain"),"xxx")
-                val format = RequestBody.create(MediaType.parse("text/plain"),"jpg")
+                val img64 = BitmapFactory.decodeFile(file.absolutePath)
+                val outputStream = ByteArrayOutputStream()
+                img64.compress(Bitmap.CompressFormat.JPEG,20,outputStream)
 
-                val req = service.postImage(body,name,email,contact,organization, qr, format)
+                val b = outputStream.toByteArray()
+                //val l = outputStream.size()
+                var encode_image = ""
+               // val sb = StringBuilder(encode_image)
+                encode_image += Base64.encode(b, Base64.DEFAULT)
+               // val reqFile = RequestBody.create(MediaType.parse("image/*"),compressedFile)
+               // val body = MultipartBody.Part.createFormData("img",file.name,reqFile)
+                val name = nameTV.text.toString()
+                val email = mailTV.text.toString()
+                val contact = contactTV.text.toString()
+                val organization = organizationTV.text.toString()
+                val qr = queryTV.text.toString()
+                val format = "jpeg"
+                val data = Data(encode_image,name,email,contact,organization, qr, format)
+
+                val req = service.postImage(data)
 
                 req.enqueue(object :Callback<ResponseBody>{
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -91,7 +105,8 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                        Log.e("Success: ",response.toString())                    }
+                        Log.e("Success: ",response.toString())
+                    }
 
                 })
             }
@@ -111,6 +126,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+      //  Log.e("ACTIVE: ",data.toString())
         if (ImagePicker.shouldHandle(requestCode, resultCode, data)) {
             // or get a single image only
             image = ImagePicker.getFirstImageOrNull(data)
@@ -119,9 +135,10 @@ class MainActivity : AppCompatActivity() {
                 Glide.with(this).load(image!!.path).into(pickedImage)
             }
         }
-        else if (requestCode==100){
-            Log.e("DATA RECIEVED", data!!.getStringExtra("qr"))
-            queryTV.setText(data.getStringExtra("qr"))
+        else if (data!!.hasExtra("qr")&&requestCode==707){
+            Log.e("DATA RECIEVED", data.getStringExtra("qr"))
+            queryTV.setText(data.extras.get("qr").toString())
+            queryTV.setText("text")
         }
         super.onActivityResult(requestCode, resultCode, data)
     }

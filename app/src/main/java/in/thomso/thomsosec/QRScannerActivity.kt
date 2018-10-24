@@ -2,6 +2,8 @@ package `in`.thomso.thomsosec
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -69,11 +71,12 @@ class QRScannerActivity : AppCompatActivity() {
                             .getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                     vibrator.vibrate(100)
                     Log.e("VALUE: ", qr!!.valueAt(0).displayValue)
-
-                    val intent = Intent(this@QRScannerActivity,MainActivity::class.java)
-                    intent.putExtra("qr",qr.valueAt(0).displayValue)
-                    startActivity(intent)
                     camera.stop()
+                    val intent = Intent()
+                    val bundle = Bundle()
+                    bundle.putString("qr",qr.valueAt(0).displayValue)
+                    intent.putExtra("qr",bundle)
+                    setResult(Activity.RESULT_OK,intent)
                     this@QRScannerActivity.finish()
 //                    cameraSurface.post {
 //                        val vibrator:Vibrator = applicationContext
