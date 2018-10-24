@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ThomsoSec</string>
+    <string name="name">Name</string>
+    <string name="mail">email</string>
+    <string name="contact">Contact</string>
+    <string name="organization">Organization</string>
+    <string name="query">Query</string>
+    <string name="scan_qr">Scan QR</string>
+    <string name="image">Image</string>
+    <string name="send">Send</string>
+</resources>
