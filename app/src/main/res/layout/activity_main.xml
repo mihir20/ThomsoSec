@@ -87,7 +87,7 @@
             android:id="@+id/picked_iv"
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_margin="8dp"
             android:layout_gravity="center"/>
     </LinearLayout>
